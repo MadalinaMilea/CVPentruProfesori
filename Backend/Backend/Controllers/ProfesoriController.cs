@@ -48,5 +48,38 @@ namespace Backend.Controllers
             _context.Profesori.Remove(profesor);
             _context.SaveChanges();
         }
+
+        [HttpGet("{id}/cv")]
+        public CvDto GetCv(int id)
+        {
+            var profesor = _context.Profesori
+                .Include(p => p.Educatii)
+                .Include(p => p.Experiente)
+                .Include(p => p.Competente)
+                .Include(p => p.Limbi)
+                .Include(p => p.Certificari)
+                .Include(p => p.Publicatii)
+                .Include(p => p.Linkuri)
+                .FirstOrDefault(p => p.Id == id);
+
+            return CvMapper.ToDto(profesor);
+        }
+
+        [HttpPut("{id}/cv")]
+        public void SaveCv(int id, CvDto dto)
+        {
+            var profesor = _context.Profesori
+                .Include(p => p.Educatii)
+                .Include(p => p.Experiente)
+                .Include(p => p.Competente)
+                .Include(p => p.Limbi)
+                .Include(p => p.Certificari)
+                .Include(p => p.Publicatii)
+                .Include(p => p.Linkuri)
+                .FirstOrDefault(p => p.Id == id);
+
+            CvMapper.ApplyDto(profesor, dto);
+            _context.SaveChanges();
+        }
     }
 }
