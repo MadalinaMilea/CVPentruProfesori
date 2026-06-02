@@ -6,10 +6,10 @@
             <h1>CV Editor</h1>
             <div class="topbar-actions">
                 <button @click="toggleLanguage">{{ language === 'en' ? 'RO' : 'EN' }}</button>
+                <button @click="exportPDF">Export PDF</button>
                 <button v-if="!profesor" @click="showLoginModal = true">Log in to save your CV</button>
                 <template v-else>
                     <button @click="saveCV">Save</button>
-                    <button @click="exportPDF">Export PDF</button>
                     <button @click="logout">Sign out</button>
                 </template>
             </div>
@@ -202,6 +202,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import LoginModal from '../components/LoginModal.vue'
+import axios from 'axios'
 
 const language = ref('en')
 const profesor = ref(null)
@@ -279,7 +280,7 @@ function logout() { }
 function onLoggedIn(profesorData) {
     profesor.value = profesorData
     sessionStorage.setItem('profesor', JSON.stringify(profesorData))
-  }
+}
 
 function addSection(slug) {
     if (!sectiuniActive.value.includes(slug)) {
@@ -316,21 +317,18 @@ const availableSections = computed(() =>
     sectiuniAdmin.value.filter(s => !sectiuniActive.value.includes(s.slug))
 )
 
-onMounted(() => {
+onMounted(async () => {
     const stored = sessionStorage.getItem('profesor')
     if (stored) profesor.value = JSON.parse(stored)
     cv.value = emptyCV()
 
-    sectiuniAdmin.value = [
-        { slug: 'education', titlu: 'Education', esteObligatoriu: true },
-        { slug: 'work', titlu: 'Work Experience', esteObligatoriu: false },
-        { slug: 'skills', titlu: 'Skills', esteObligatoriu: false },
-        { slug: 'publications', titlu: 'Publications', esteObligatoriu: false },
-        { slug: 'languages', titlu: 'Languages', esteObligatoriu: false },
-    ]
-
-    sectiuniActive.value = ['education']
-    cv.value.education.push(emptyEntry('education'))
+    const res = await axios.get('https://localhost:7234/api/Sectiuni/active')
+    sectiuniAdmin.value = res.data
+    const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
+    sectiuniActive.value = [...required]
+    for (const slug of required) {
+        cv.value[slug].push(emptyEntry(slug))
+    }
 })
 
 </script>

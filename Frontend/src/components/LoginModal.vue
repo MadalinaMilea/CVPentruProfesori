@@ -27,7 +27,7 @@
 
   async function login() {
     try {
-      const res = await axios.get('http://localhost:5138/api/Profesori/login', {
+      const res = await axios.get('https://localhost:7234/api/Profesori/login', {
         params: { username: username.value.trim() }
       })
       emit('loggedIn', res.data)
