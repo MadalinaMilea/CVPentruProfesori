@@ -48,6 +48,7 @@
                 <div>
                     <button @click="moveUp(idx)" :disabled="idx === 0">↑</button>
                     <button @click="moveDown(idx)" :disabled="idx === sectiuniActive.length - 1">↓</button>
+                    <button v-if="slug === 'publications' && profesor" @click="importPublications">Import from CROSSREF</button>
                     <button @click="addEntry(slug)">+</button>
                     <button @click="hideSection(slug)">✕</button>
                 </div>
@@ -377,6 +378,17 @@ function exportPDF() {
 
     doc.save(`CV_${name}.pdf`)
 }
+async function importPublications() {
+    const res = await axios.get(`https://localhost:7234/api/Publicatii/import/${profesor.value.id}`)
+    const fetched = res.data
+    const existing = cv.value.publications || []
+    const existingTitles = existing.map(p => (p.name || '').toLowerCase())
+    const toAdd = fetched.filter(p => !existingTitles.includes((p.name || '').toLowerCase()))
+    cv.value.publications = [...existing, ...toAdd]
+    if (!sectiuniActive.value.includes('publications')) sectiuniActive.value.push('publications')
+    alert(toAdd.length + ' new publications imported.')
+}
+
 function logout() {
     sessionStorage.removeItem('profesor')
     profesor.value = null
