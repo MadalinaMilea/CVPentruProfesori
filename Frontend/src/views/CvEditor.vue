@@ -15,6 +15,8 @@
             </div>
         </div>
 
+        <LoginModal v-if="showLoginModal" @close="showLoginModal = false" @loggedIn="onLoggedIn" />
+
         <div class="cv-section">
             <h2>{{ language === 'en' ? 'Basic Information' : 'Informații de bază' }}</h2>
             <div class="fields-grid">
@@ -199,6 +201,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import LoginModal from '../components/LoginModal.vue'
 
 const language = ref('en')
 const profesor = ref(null)
@@ -272,6 +275,11 @@ function toggleLanguage() {
 function saveCV() { }
 function exportPDF() { }
 function logout() { }
+
+function onLoggedIn(profesorData) {
+    profesor.value = profesorData
+    sessionStorage.setItem('profesor', JSON.stringify(profesorData))
+  }
 
 function addSection(slug) {
     if (!sectiuniActive.value.includes(slug)) {
