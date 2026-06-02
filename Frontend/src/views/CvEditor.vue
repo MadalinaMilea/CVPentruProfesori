@@ -392,11 +392,41 @@ async function importPublications() {
 function logout() {
     sessionStorage.removeItem('profesor')
     profesor.value = null
+    cv.value = emptyCV()
+    profiles.value = { orcid: '', googleScholar: '', wos: '', crossref: '', researchgate: '' }
+    const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
+    sectiuniActive.value = [...required]
+    for (const slug of required) {
+        cv.value[slug].push(emptyEntry(slug))
+    }
 }
 
-function onLoggedIn(profesorData) {
+async function onLoggedIn(profesorData) {
     profesor.value = profesorData
     sessionStorage.setItem('profesor', JSON.stringify(profesorData))
+    await loadCV(profesorData.id)
+}
+
+async function loadCV(id) {
+    const res = await axios.get(`https://localhost:7234/api/Profesori/${id}/cv`)
+    const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+    cv.value = { ...emptyCV(), ...data }
+
+    // convert profiles array back to flat object
+    for (const p of (data.basics?.profiles || [])) {
+        const key = Object.keys(profiles.value).find(k => k.toLowerCase() === p.network?.toLowerCase())
+        if (key) profiles.value[key] = p.url || ''
+    }
+
+    // activate sections that have saved data
+    const withData = sectiuniAdmin.value.map(s => s.slug).filter(slug => cv.value[slug]?.length > 0)
+    const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
+    sectiuniActive.value = [...new Set([...required, ...withData])]
+
+    // ensure required sections have at least one empty entry
+    for (const slug of required) {
+        if (!cv.value[slug].length) cv.value[slug].push(emptyEntry(slug))
+    }
 }
 
 function addSection(slug) {
@@ -446,6 +476,8 @@ onMounted(async () => {
     for (const slug of required) {
         cv.value[slug].push(emptyEntry(slug))
     }
+
+    if (profesor.value) await loadCV(profesor.value.id)
 })
 
 </script>
