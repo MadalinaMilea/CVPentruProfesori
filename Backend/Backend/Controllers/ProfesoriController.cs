@@ -81,5 +81,11 @@ namespace Backend.Controllers
             CvMapper.ApplyDto(profesor, dto);
             _context.SaveChanges();
         }
+
+        [HttpGet("login")] 
+        public Profesor Login([FromQuery] string username)
+        {
+            return _context.Profesori.FirstOrDefault(p => (p.Prenume + " " + p.Nume) == username);
+        }
     }
 }
