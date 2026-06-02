@@ -203,6 +203,7 @@
 import { ref, computed, onMounted } from 'vue'
 import LoginModal from '../components/LoginModal.vue'
 import axios from 'axios'
+import { jsPDF } from 'jspdf'
 
 const language = ref('en')
 const profesor = ref(null)
@@ -273,9 +274,113 @@ function toggleLanguage() {
     language.value = language.value === 'en' ? 'ro' : 'en'
 }
 
-function saveCV() { }
-function exportPDF() { }
-function logout() { }
+async function saveCV() {
+    cv.value.basics.profiles = Object.entries(profiles.value)
+        .filter(([, url]) => url.trim())
+        .map(([key, url]) => ({
+            network: key,
+            url: url.trim()
+        }))
+    await axios.put(`https://localhost:7234/api/Profesori/${profesor.value.id}/cv`, cv.value)
+    alert('CV saved!')
+}
+function exportPDF() {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+
+    const ML = 18, MR = 18, PAGE_W = 210, PAGE_H = 297
+    const CONTENT_W = PAGE_W - ML - MR
+    const NAVY = [26, 39, 68], ACCENT = [26, 71, 100], DARK = [30, 30, 30], GREY = [100, 100, 100], LIGHT = [180, 180, 180]
+
+    let y = 16
+
+    const checkPage = (needed = 12) => {
+        if (y + needed > PAGE_H - 12) { doc.addPage(); y = 16 }
+    }
+
+    const txt = (text, size = 10, bold = false, color = DARK) => {
+        if (!text) return
+        doc.setFontSize(size); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setTextColor(...color)
+        const lines = doc.splitTextToSize(String(text), CONTENT_W)
+        checkPage(lines.length * size * 0.45)
+        doc.text(lines, ML, y)
+        y += lines.length * (size * 0.42) + 1.5
+    }
+
+    const sectionHeader = (title) => {
+        checkPage(14); y += 5
+        doc.setFillColor(...ACCENT); doc.rect(ML, y - 4.5, 3, 6, 'F')
+        doc.setFontSize(10.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...NAVY)
+        doc.text(title.toUpperCase(), ML + 5, y)
+        doc.setDrawColor(...LIGHT); doc.setLineWidth(0.3)
+        doc.line(ML + 5, y + 1.5, PAGE_W - MR, y + 1.5)
+        y += 6
+    }
+
+    const entryRow = (left, right) => {
+        checkPage(8)
+        const rightW = 42
+        doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK)
+        const lines = doc.splitTextToSize(left, CONTENT_W - rightW)
+        doc.text(lines, ML, y)
+        if (right) {
+            doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
+            doc.text(right, PAGE_W - MR, y, { align: 'right' })
+        }
+        y += lines.length * (10 * 0.42) + 1.5
+    }
+
+    // Header
+    const b = cv.value.basics
+    const name = b.name || 'CV'
+    doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(...NAVY)
+    doc.text(name, ML, y); y += 9
+
+    if (b.label) {
+        doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ACCENT)
+        doc.text(b.label, ML, y); y += 6
+    }
+
+    const contactParts = [b.email, b.phone, b.url].filter(Boolean)
+    if (contactParts.length) {
+        doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
+        doc.text(contactParts.join('   |   '), ML, y); y += 5
+    }
+
+    y += 2; doc.setDrawColor(...NAVY); doc.setLineWidth(0.6); doc.line(ML, y, PAGE_W - MR, y); y += 6
+
+    if (b.summary) { sectionHeader('Summary'); txt(b.summary, 9.5, false, GREY); y += 2 }
+
+    const labels = {
+        en: { work: 'Work Experience', education: 'Education', skills: 'Skills', languages: 'Languages', publications: 'Publications', certificates: 'Certificates', projects: 'Projects', awards: 'Awards', interests: 'Interests', references: 'References', volunteer: 'Volunteer' },
+        ro: { work: 'Experiență profesională', education: 'Educație', skills: 'Competențe', languages: 'Limbi', publications: 'Publicații', certificates: 'Certificate', projects: 'Proiecte', awards: 'Premii', interests: 'Interese', references: 'Referințe', volunteer: 'Voluntariat' }
+    }
+
+    const renderers = {
+        work: (e) => { entryRow([e.position, e.name].filter(Boolean).join(' — '), [e.startDate, e.endDate].filter(Boolean).join(' – ')); if (e.summary) txt(e.summary, 9, false, GREY) },
+        volunteer: (e) => { entryRow([e.position, e.organization].filter(Boolean).join(' — '), [e.startDate, e.endDate].filter(Boolean).join(' – ')); if (e.summary) txt(e.summary, 9, false, GREY) },
+        education: (e) => { entryRow([e.studyType, e.area].filter(Boolean).join(' in '), [e.startDate, e.endDate].filter(Boolean).join(' – ')); if (e.institution) txt(e.institution, 9, false, GREY) },
+        publications: (e) => { entryRow(e.name || '', e.releaseDate || ''); if (e.publisher) txt(e.publisher, 9, false, GREY); if (e.url) txt(e.url, 8, false, [0, 100, 180]) },
+        skills: (e) => { txt(`• ${e.name}${e.level ? ' — ' + e.level : ''}`, 9.5, false, DARK) },
+        languages: (e) => { txt(`• ${e.language}${e.fluency ? ' — ' + e.fluency : ''}`, 9.5, false, DARK) },
+        certificates: (e) => { entryRow(e.name || '', e.date || ''); if (e.issuer) txt(e.issuer, 9, false, GREY) },
+        projects: (e) => { entryRow(e.name || '', [e.startDate, e.endDate].filter(Boolean).join(' – ')); if (e.description) txt(e.description, 9, false, GREY) },
+        awards: (e) => { entryRow(e.title || '', e.date || ''); if (e.awarder) txt(e.awarder, 9, false, GREY) },
+        interests: (e) => { txt(`• ${e.name}`, 9.5, false, DARK) },
+        references: (e) => { entryRow(e.name || '', ''); if (e.reference) txt(e.reference, 9, false, GREY) },
+    }
+
+    for (const slug of sectiuniActive.value) {
+        if (!cv.value[slug]?.length) continue
+        sectionHeader(labels[language.value][slug] || slug)
+        for (const entry of cv.value[slug]) { renderers[slug]?.(entry); y += 2 }
+    }
+
+    doc.save(`CV_${name}.pdf`)
+}
+function logout() {
+    sessionStorage.removeItem('profesor')
+    profesor.value = null
+}
 
 function onLoggedIn(profesorData) {
     profesor.value = profesorData
