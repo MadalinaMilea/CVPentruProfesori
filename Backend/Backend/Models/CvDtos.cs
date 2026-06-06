@@ -9,6 +9,11 @@
         public List<LanguageDto> Languages { get; set; }
         public List<CertificateDto> Certificates { get; set; }
         public List<PublicationDto> Publications { get; set; }
+        public List<AwardDto> Awards { get; set; }
+        public List<ProjectDto> Projects { get; set; }
+        public List<InterestDto> Interests { get; set; }
+        public List<ReferenceDto> References { get; set; }
+        public List<VolunteerDto> Volunteer { get; set; }
     }
 
     public class BasicsDto
@@ -74,6 +79,43 @@
         public string Publisher { get; set; }
         public string ReleaseDate { get; set; }
         public string Url { get; set; }
+        public string Summary { get; set; }
+    }
+
+    public class AwardDto
+    {
+        public string Title { get; set; }
+        public string Awarder { get; set; }
+        public string Date { get; set; }
+        public string Summary { get; set; }
+    }
+
+    public class ProjectDto
+    {
+        public string Name { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string Url { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class InterestDto
+    {
+        public string Name { get; set; }
+    }
+
+    public class ReferenceDto
+    {
+        public string Name { get; set; }
+        public string Reference { get; set; }
+    }
+
+    public class VolunteerDto
+    {
+        public string Organization { get; set; }
+        public string Position { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
         public string Summary { get; set; }
     }
 }

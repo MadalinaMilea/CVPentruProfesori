@@ -64,6 +64,38 @@ namespace Backend.Data
                     ReleaseDate = p.DataPublicare,
                     Url = p.Url,
                     Summary = p.Rezumat
+                }).ToList(),
+                Awards = profesor.Premii.Select(p => new AwardDto
+                {
+                    Title = p.Titlu,
+                    Awarder = p.Acordant,
+                    Date = p.Data,
+                    Summary = p.Rezumat
+                }).ToList(),
+                Projects = profesor.Proiecte.Select(p => new ProjectDto
+                {
+                    Name = p.Nume,
+                    StartDate = p.DataStart,
+                    EndDate = p.DataEnd,
+                    Url = p.Url,
+                    Description = p.Descriere
+                }).ToList(),
+                Interests = profesor.Interese.Select(i => new InterestDto
+                {
+                    Name = i.Nume
+                }).ToList(),
+                References = profesor.Referinte.Select(r => new ReferenceDto
+                {
+                    Name = r.Nume,
+                    Reference = r.Referinta_
+                }).ToList(),
+                Volunteer = profesor.Voluntariate.Select(v => new VolunteerDto
+                {
+                    Organization = v.Organizatie,
+                    Position = v.Pozitie,
+                    StartDate = v.DataStart,
+                    EndDate = v.DataEnd,
+                    Summary = v.Rezumat
                 }).ToList()
             };
         }
@@ -125,6 +157,26 @@ namespace Backend.Data
                     Url = p.Url,
                     Rezumat = p.Summary
                 });
+
+            profesor.Premii.Clear();
+            foreach (var p in dto.Awards ?? new List<AwardDto>())
+                profesor.Premii.Add(new Premiu { Titlu = p.Title, Acordant = p.Awarder, Data = p.Date, Rezumat = p.Summary });
+
+            profesor.Proiecte.Clear();
+            foreach (var p in dto.Projects ?? new List<ProjectDto>())
+                profesor.Proiecte.Add(new Proiect { Nume = p.Name, DataStart = p.StartDate, DataEnd = p.EndDate, Url = p.Url, Descriere = p.Description });
+
+            profesor.Interese.Clear();
+            foreach (var i in dto.Interests ?? new List<InterestDto>())
+                profesor.Interese.Add(new Interes { Nume = i.Name });
+
+            profesor.Referinte.Clear();
+            foreach (var r in dto.References ?? new List<ReferenceDto>())
+                profesor.Referinte.Add(new Referinta { Nume = r.Name, Referinta_ = r.Reference });
+
+            profesor.Voluntariate.Clear();
+            foreach (var v in dto.Volunteer ?? new List<VolunteerDto>())
+                profesor.Voluntariate.Add(new Voluntariat { Organizatie = v.Organization, Pozitie = v.Position, DataStart = v.StartDate, DataEnd = v.EndDate, Rezumat = v.Summary });
         }
     }
 }

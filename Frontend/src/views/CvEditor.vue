@@ -37,7 +37,6 @@
                 <label>ORCID<input v-model="profiles.orcid" /></label>
                 <label>Google Scholar<input v-model="profiles.googleScholar" /></label>
                 <label>Web of Science<input v-model="profiles.wos" /></label>
-                <label>CROSSREF<input v-model="profiles.crossref" /></label>
                 <label>ResearchGate<input v-model="profiles.researchgate" /></label>
             </div>
         </div>
@@ -229,7 +228,6 @@ const profiles = ref({
     orcid: '',
     googleScholar: '',
     wos: '',
-    crossref: '',
     researchgate: ''
 })
 
@@ -347,6 +345,16 @@ function exportPDF() {
         doc.text(contactParts.join('   |   '), ML, y); y += 5
     }
 
+    if (b.profiles && b.profiles.length) {
+        const profileParts = b.profiles.filter(p => p.network && p.url).map(p => `${p.network}: ${p.url}`)
+        if (profileParts.length) {
+            doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY)
+            const profileLines = doc.splitTextToSize(profileParts.join('   |   '), CONTENT_W)
+            doc.text(profileLines, ML, y)
+            y += profileLines.length * (8 * 0.42) + 2
+        }
+    }
+
     y += 2; doc.setDrawColor(...NAVY); doc.setLineWidth(0.6); doc.line(ML, y, PAGE_W - MR, y); y += 6
 
     if (b.summary) { sectionHeader('Summary'); txt(b.summary, 9.5, false, GREY); y += 2 }
@@ -393,7 +401,7 @@ function logout() {
     sessionStorage.removeItem('profesor')
     profesor.value = null
     cv.value = emptyCV()
-    profiles.value = { orcid: '', googleScholar: '', wos: '', crossref: '', researchgate: '' }
+    profiles.value = { orcid: '', googleScholar: '', wos: '', researchgate: '' }
     const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
     sectiuniActive.value = [...required]
     for (const slug of required) {

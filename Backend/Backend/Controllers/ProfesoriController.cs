@@ -60,6 +60,12 @@ namespace Backend.Controllers
                 .Include(p => p.Certificari)
                 .Include(p => p.Publicatii)
                 .Include(p => p.Linkuri)
+                .Include(p => p.Premii)
+                .Include(p => p.Proiecte)
+                .Include(p => p.Interese)
+                .Include(p => p.Referinte)
+                .Include(p => p.Voluntariate)
+                .AsSplitQuery()
                 .FirstOrDefault(p => p.Id == id);
 
             return CvMapper.ToDto(profesor);
@@ -76,6 +82,12 @@ namespace Backend.Controllers
                 .Include(p => p.Certificari)
                 .Include(p => p.Publicatii)
                 .Include(p => p.Linkuri)
+                .Include(p => p.Premii)
+                .Include(p => p.Proiecte)
+                .Include(p => p.Interese)
+                .Include(p => p.Referinte)
+                .Include(p => p.Voluntariate)
+                .AsSplitQuery()
                 .FirstOrDefault(p => p.Id == id);
 
             CvMapper.ApplyDto(profesor, dto);

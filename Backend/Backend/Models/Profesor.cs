@@ -17,5 +17,10 @@
         public List<Certificare> Certificari { get; set; } = new List<Certificare>();
         public List<Publicatie> Publicatii { get; set; } = new List<Publicatie>();
         public List<Link> Linkuri { get; set; } = new List<Link>();
+        public List<Premiu> Premii { get; set; } = new List<Premiu>();
+        public List<Proiect> Proiecte { get; set; } = new List<Proiect>();
+        public List<Interes> Interese { get; set; } = new List<Interes>();
+        public List<Referinta> Referinte { get; set; } = new List<Referinta>();
+        public List<Voluntariat> Voluntariate { get; set; } = new List<Voluntariat>();
     }
 }
