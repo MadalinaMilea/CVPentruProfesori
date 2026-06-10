@@ -426,3 +426,26 @@ textarea { resize: vertical; }
 
 .order-controls button:hover:not(:disabled) { background: #f1f5f9; }
 .order-controls button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Custom sections in admin */
+.custom-section-row { flex-direction: column; align-items: stretch; gap: 10px; }
+.custom-section-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.fields-list { padding-left: 16px; display: flex; flex-direction: column; gap: 6px; }
+.field-row { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; }
+.field-label { font-weight: 500; color: #334155; min-width: 120px; }
+.add-field-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.add-field-form input { padding: 5px 8px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; }
+.add-field-form select { padding: 5px 8px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; }
+.add-field-form button { padding: 5px 12px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; cursor: pointer; font-size: 0.83rem; }
+.btn-add-field { padding: 4px 12px; border: 1.5px dashed #94a3b8; border-radius: 6px; background: transparent; color: #64748b; cursor: pointer; font-size: 0.82rem; margin-top: 4px; }
+.btn-add-field:hover { background: #f8fafc; }
+.btn-danger { padding: 4px 10px; border-radius: 6px; border: 1.5px solid #fca5a5; background: #fff5f5; color: #dc2626; cursor: pointer; font-size: 0.82rem; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-danger-sm { padding: 2px 7px; border-radius: 5px; border: 1.5px solid #fca5a5; background: #fff5f5; color: #dc2626; cursor: pointer; font-size: 0.78rem; }
+.btn-danger-sm:hover { background: #fee2e2; }
+.new-section-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1.5px dashed #cbd5e1; margin-top: 12px; }
+.new-section-form input { padding: 7px 10px; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 0.88rem; min-width: 200px; }
+.new-section-form label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #475569; }
+.new-section-form button { padding: 7px 16px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; cursor: pointer; font-size: 0.85rem; }
+.btn-add-section { margin-top: 12px; padding: 8px 18px; border: 1.5px dashed #94a3b8; border-radius: 8px; background: transparent; color: #475569; cursor: pointer; font-size: 0.88rem; }
+.btn-add-section:hover { background: #f1f5f9; }

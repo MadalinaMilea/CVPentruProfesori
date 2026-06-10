@@ -41,154 +41,144 @@
             </div>
         </div>
 
-        <div v-for="(slug, idx) in sectiuniActive" :key="slug" class="cv-section">
-            <div class="section-header">
-                <h2>{{ slug }}</h2>
-                <div>
-                    <button @click="moveUp(idx)" :disabled="idx === 0">↑</button>
-                    <button @click="moveDown(idx)" :disabled="idx === sectiuniActive.length - 1">↓</button>
-                    <button v-if="slug === 'publications' && profesor" @click="importPublications">Import from CROSSREF</button>
-                    <button @click="addEntry(slug)">+</button>
-                    <button @click="hideSection(slug)">✕</button>
+        <!-- All sections merged in admin-defined order -->
+        <template v-for="item in editorSections" :key="item.type === 'builtin' ? item.slug : 'custom-' + item.sc.id">
+
+            <!-- Built-in section -->
+            <div v-if="item.type === 'builtin'" class="cv-section">
+                <div class="section-header">
+                    <h2>{{ item.slug }}</h2>
+                    <div>
+                        <button @click="moveUp(sectiuniActive.indexOf(item.slug))" :disabled="sectiuniActive.indexOf(item.slug) === 0">↑</button>
+                        <button @click="moveDown(sectiuniActive.indexOf(item.slug))" :disabled="sectiuniActive.indexOf(item.slug) === sectiuniActive.length - 1">↓</button>
+                        <button v-if="item.slug === 'publications' && profesor" @click="importPublications">Import from CROSSREF</button>
+                        <button @click="addEntry(item.slug)">+</button>
+                        <button @click="hideSection(item.slug)">✕</button>
+                    </div>
+                </div>
+
+                <div v-for="(entry, i) in cv[item.slug]" :key="i" class="entry-card">
+                    <button @click="cv[item.slug].splice(i, 1)">✕</button>
+                    <template v-if="item.slug === 'education'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Institution' : 'Instituție' }}<input v-model="entry.institution" /></label>
+                            <label>{{ language === 'en' ? 'Field of Study' : 'Domeniu' }}<input v-model="entry.area" /></label>
+                            <label>{{ language === 'en' ? 'Degree Type' : 'Tip diplomă' }}<input v-model="entry.studyType" /></label>
+                            <label>{{ language === 'en' ? 'Grade' : 'Notă' }}<input v-model="entry.score" /></label>
+                            <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input v-model="entry.startDate" /></label>
+                            <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input v-model="entry.endDate" /></label>
+                            <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'work'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Company' : 'Companie' }}<input v-model="entry.name" /></label>
+                            <label>{{ language === 'en' ? 'Position' : 'Poziție' }}<input v-model="entry.position" /></label>
+                            <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input v-model="entry.startDate" /></label>
+                            <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input v-model="entry.endDate" /></label>
+                            <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
+                            <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea v-model="entry.summary" rows="2"></textarea></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'publications'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Title' : 'Titlu' }}<input v-model="entry.name" /></label>
+                            <label>{{ language === 'en' ? 'Publisher' : 'Editor' }}<input v-model="entry.publisher" /></label>
+                            <label>{{ language === 'en' ? 'Date' : 'Data' }}<input v-model="entry.releaseDate" /></label>
+                            <label class="full">{{ language === 'en' ? 'URL / DOI' : 'URL / DOI' }}<input v-model="entry.url" /></label>
+                            <label class="full">{{ language === 'en' ? 'Abstract' : 'Rezumat' }}<textarea v-model="entry.summary" rows="2"></textarea></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'skills'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Skill' : 'Competență' }}<input v-model="entry.name" /></label>
+                            <label>{{ language === 'en' ? 'Level' : 'Nivel' }}<input v-model="entry.level" /></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'languages'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Language' : 'Limbă' }}<input v-model="entry.language" /></label>
+                            <label>{{ language === 'en' ? 'Fluency' : 'Nivel' }}<input v-model="entry.fluency" /></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'certificates'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Name' : 'Nume' }}<input v-model="entry.name" /></label>
+                            <label>{{ language === 'en' ? 'Issuer' : 'Emitent' }}<input v-model="entry.issuer" /></label>
+                            <label>{{ language === 'en' ? 'Date' : 'Data' }}<input v-model="entry.date" /></label>
+                            <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'awards'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Title' : 'Titlu' }}<input v-model="entry.title" /></label>
+                            <label>{{ language === 'en' ? 'Awarded by' : 'Acordat de' }}<input v-model="entry.awarder" /></label>
+                            <label>{{ language === 'en' ? 'Date' : 'Data' }}<input v-model="entry.date" /></label>
+                            <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea v-model="entry.summary" rows="2"></textarea></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'projects'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Name' : 'Nume' }}<input v-model="entry.name" /></label>
+                            <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input v-model="entry.startDate" /></label>
+                            <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input v-model="entry.endDate" /></label>
+                            <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
+                            <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea v-model="entry.description" rows="2"></textarea></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'interests'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Interest' : 'Interes' }}<input v-model="entry.name" /></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'references'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Name' : 'Nume' }}<input v-model="entry.name" /></label>
+                            <label class="full">{{ language === 'en' ? 'Reference' : 'Referință' }}<textarea v-model="entry.reference" rows="2"></textarea></label>
+                        </div>
+                    </template>
+                    <template v-else-if="item.slug === 'volunteer'">
+                        <div class="fields-grid">
+                            <label>{{ language === 'en' ? 'Organization' : 'Organizație' }}<input v-model="entry.organization" /></label>
+                            <label>{{ language === 'en' ? 'Position' : 'Poziție' }}<input v-model="entry.position" /></label>
+                            <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input v-model="entry.startDate" /></label>
+                            <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input v-model="entry.endDate" /></label>
+                            <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea v-model="entry.summary" rows="2"></textarea></label>
+                        </div>
+                    </template>
                 </div>
             </div>
 
-            <div v-for="(entry, i) in cv[slug]" :key="i" class="entry-card">
-                <button @click="cv[slug].splice(i, 1)">✕</button>
-                <template v-if="slug === 'education'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Institution' : 'Instituție' }}<input
-                                v-model="entry.institution" /></label>
-                        <label>{{ language === 'en' ? 'Field of Study' : 'Domeniu' }}<input
-                                v-model="entry.area" /></label>
-                        <label>{{ language === 'en' ? 'Degree Type' : 'Tip diplomă' }}<input
-                                v-model="entry.studyType" /></label>
-                        <label>{{ language === 'en' ? 'Grade' : 'Notă' }}<input v-model="entry.score" /></label>
-                        <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input
-                                v-model="entry.startDate" /></label>
-                        <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input
-                                v-model="entry.endDate" /></label>
-                        <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
+            <!-- Custom section -->
+            <div v-else class="cv-section">
+                <div class="section-header">
+                    <h2>{{ item.sc.titlu }}</h2>
+                    <div>
+                        <button v-if="item.sc.esteRepetabila" @click="addCustomEntry(item.sc)">+</button>
                     </div>
-                </template>
-                <template v-else-if="slug === 'work'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Company' : 'Companie' }}<input v-model="entry.name" /></label>
-                        <label>{{ language === 'en' ? 'Position' : 'Poziție' }}<input
-                                v-model="entry.position" /></label>
-                        <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input
-                                v-model="entry.startDate" /></label>
-                        <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input
-                                v-model="entry.endDate" /></label>
-                        <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
-                        <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea
-                                v-model="entry.summary" rows="2"></textarea></label>
-                    </div>
-                </template>
-                <template v-else-if="slug === 'publications'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Title' : 'Titlu' }}<input v-model="entry.name" /></label>
-                        <label>{{ language === 'en' ? 'Publisher' : 'Editor' }}<input
-                                v-model="entry.publisher" /></label>
-                        <label>{{ language === 'en' ? 'Date' : 'Data' }}<input v-model="entry.releaseDate" /></label>
-                        <label class="full">{{ language === 'en' ? 'URL / DOI' : 'URL / DOI' }}<input
-                                v-model="entry.url" /></label>
-                        <label class="full">{{ language === 'en' ? 'Abstract' : 'Rezumat' }}<textarea
-                                v-model="entry.summary" rows="2"></textarea></label>
-                    </div>
-                </template>
+                </div>
 
-                <!-- Skills -->
-                <template v-else-if="slug === 'skills'">
+                <div v-for="(entry, ei) in (customValues[item.sc.id] || [])" :key="ei" class="entry-card">
+                    <button
+                        v-if="item.sc.esteRepetabila && (customValues[item.sc.id] || []).length > (item.sc.esteObligatorie ? 1 : 0)"
+                        @click="removeCustomEntry(item.sc.id, ei)">✕</button>
                     <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Skill' : 'Competență' }}<input v-model="entry.name" /></label>
-                        <label>{{ language === 'en' ? 'Level' : 'Nivel' }}<input v-model="entry.level" /></label>
+                        <label v-for="camp in item.sc.campuri" :key="camp.id" :class="{ full: camp.esteFull }">
+                            {{ camp.eticheta }}
+                            <textarea v-if="camp.tip === 'textarea'" v-model="entry.valori[camp.id]" rows="3"></textarea>
+                            <input v-else :type="campInputType(camp.tip)" v-model="entry.valori[camp.id]" />
+                        </label>
                     </div>
-                </template>
-
-                <!-- Languages -->
-                <template v-else-if="slug === 'languages'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Language' : 'Limbă' }}<input v-model="entry.language" /></label>
-                        <label>{{ language === 'en' ? 'Fluency' : 'Nivel' }}<input v-model="entry.fluency" /></label>
-                    </div>
-                </template>
-
-                <!-- Certificates -->
-                <template v-else-if="slug === 'certificates'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Name' : 'Nume' }}<input v-model="entry.name" /></label>
-                        <label>{{ language === 'en' ? 'Issuer' : 'Emitent' }}<input v-model="entry.issuer" /></label>
-                        <label>{{ language === 'en' ? 'Date' : 'Data' }}<input v-model="entry.date" /></label>
-                        <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
-                    </div>
-                </template>
-
-                <!-- Awards -->
-                <template v-else-if="slug === 'awards'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Title' : 'Titlu' }}<input v-model="entry.title" /></label>
-                        <label>{{ language === 'en' ? 'Awarded by' : 'Acordat de' }}<input
-                                v-model="entry.awarder" /></label>
-                        <label>{{ language === 'en' ? 'Date' : 'Data' }}<input v-model="entry.date" /></label>
-                        <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea
-                                v-model="entry.summary" rows="2"></textarea></label>
-                    </div>
-                </template>
-
-                <!-- Projects -->
-                <template v-else-if="slug === 'projects'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Name' : 'Nume' }}<input v-model="entry.name" /></label>
-                        <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input
-                                v-model="entry.startDate" /></label>
-                        <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input
-                                v-model="entry.endDate" /></label>
-                        <label class="full">{{ language === 'en' ? 'URL' : 'URL' }}<input v-model="entry.url" /></label>
-                        <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea
-                                v-model="entry.description" rows="2"></textarea></label>
-                    </div>
-                </template>
-
-                <!-- Interests -->
-                <template v-else-if="slug === 'interests'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Interest' : 'Interes' }}<input v-model="entry.name" /></label>
-                    </div>
-                </template>
-
-                <!-- References -->
-                <template v-else-if="slug === 'references'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Name' : 'Nume' }}<input v-model="entry.name" /></label>
-                        <label class="full">{{ language === 'en' ? 'Reference' : 'Referință' }}<textarea
-                                v-model="entry.reference" rows="2"></textarea></label>
-                    </div>
-                </template>
-
-                <!-- Volunteer -->
-                <template v-else-if="slug === 'volunteer'">
-                    <div class="fields-grid">
-                        <label>{{ language === 'en' ? 'Organization' : 'Organizație' }}<input
-                                v-model="entry.organization" /></label>
-                        <label>{{ language === 'en' ? 'Position' : 'Poziție' }}<input
-                                v-model="entry.position" /></label>
-                        <label>{{ language === 'en' ? 'Start Date' : 'Data început' }}<input
-                                v-model="entry.startDate" /></label>
-                        <label>{{ language === 'en' ? 'End Date' : 'Data sfârșit' }}<input
-                                v-model="entry.endDate" /></label>
-                        <label class="full">{{ language === 'en' ? 'Description' : 'Descriere' }}<textarea
-                                v-model="entry.summary" rows="2"></textarea></label>
-                    </div>
-                </template>
+                </div>
             </div>
-        </div>
+
+        </template>
 
     </div>
 
     <div class="fab-wrap">
         <div v-if="dropdownOpen" class="fab-menu">
-            <button v-for="s in availableSections" :key="s.slug" @click="addSection(s.slug); dropdownOpen = false">
+            <button v-for="s in availableSections" :key="s.type + '-' + s.key" @click="addSection(s); dropdownOpen = false">
                 + {{ s.titlu }}
             </button>
             <p v-if="!availableSections.length">All sections added</p>
@@ -205,6 +195,7 @@ import LoginModal from '../components/LoginModal.vue'
 import axios from 'axios'
 import { jsPDF } from 'jspdf'
 
+const API = 'https://localhost:7234'
 const language = ref('en')
 const profesor = ref(null)
 const showLoginModal = ref(false)
@@ -234,6 +225,11 @@ const profiles = ref({
 const sectiuniAdmin = ref([])
 const sectiuniActive = ref([])
 const dropdownOpen = ref(false)
+
+// Custom sections
+const customSections = ref([])
+const customSectiuniActive = ref([]) // IDs of custom sections currently shown in editor
+const customValues = ref({}) // sectiuneId → [{ id, ordine, valori: { campId: value } }]
 
 function emptyCV() {
     return {
@@ -269,6 +265,39 @@ function emptyEntry(slug) {
     return { ...map[slug] }
 }
 
+function emptyCustomEntry(campuri) {
+    const valori = {}
+    campuri.forEach(c => { valori[c.id] = '' })
+    return { id: null, ordine: 1, valori }
+}
+
+function campInputType(tip) {
+    if (tip === 'number') return 'number'
+    if (tip === 'date') return 'date'
+    if (tip === 'url') return 'url'
+    return 'text'
+}
+
+function addCustomEntry(sc) {
+    if (!customValues.value[sc.id]) customValues.value[sc.id] = []
+    const entry = emptyCustomEntry(sc.campuri)
+    entry.ordine = customValues.value[sc.id].length + 1
+    customValues.value[sc.id].push(entry)
+}
+
+function removeCustomEntry(sectiuneId, idx) {
+    customValues.value[sectiuneId].splice(idx, 1)
+}
+
+function initCustomValues() {
+    for (const sc of customSections.value) {
+        if (!customSectiuniActive.value.includes(sc.id)) continue
+        if (!customValues.value[sc.id] || customValues.value[sc.id].length === 0) {
+            customValues.value[sc.id] = [emptyCustomEntry(sc.campuri)]
+        }
+    }
+}
+
 function toggleLanguage() {
     language.value = language.value === 'en' ? 'ro' : 'en'
 }
@@ -276,14 +305,33 @@ function toggleLanguage() {
 async function saveCV() {
     cv.value.basics.profiles = Object.entries(profiles.value)
         .filter(([, url]) => url.trim())
-        .map(([key, url]) => ({
-            network: key,
-            url: url.trim()
+        .map(([key, url]) => ({ network: key, url: url.trim() }))
+    await axios.put(`${API}/api/Profesori/${profesor.value.id}/cv`, cv.value)
+
+    const payload = Object.entries(customValues.value).map(([sectiuneId, entries]) => ({
+        sectiuneId: parseInt(sectiuneId),
+        inregistrari: entries.map((entry, idx) => ({
+            id: entry.id,
+            ordine: idx + 1,
+            valori: Object.entries(entry.valori).map(([campId, valoare]) => ({
+                campId: parseInt(campId),
+                valoare: valoare || ''
+            }))
         }))
-    await axios.put(`https://localhost:7234/api/Profesori/${profesor.value.id}/cv`, cv.value)
+    }))
+    await axios.put(`${API}/api/Profesori/${profesor.value.id}/sectiuniCustome`, payload)
+
     alert('CV saved!')
 }
-function exportPDF() {
+
+async function exportPDF() {
+    const [sectRes, customRes] = await Promise.all([
+        axios.get(`${API}/api/Sectiuni/active`),
+        axios.get(`${API}/api/SectiuniCustome/active`)
+    ])
+    const freshBuiltin = sectRes.data
+    const freshCustom = customRes.data
+
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
     const ML = 18, MR = 18, PAGE_W = 210, PAGE_H = 297
@@ -378,16 +426,41 @@ function exportPDF() {
         references: (e) => { entryRow(e.name || '', ''); if (e.reference) txt(e.reference, 9, false, GREY) },
     }
 
-    for (const slug of sectiuniActive.value) {
-        if (!cv.value[slug]?.length) continue
-        sectionHeader(labels[language.value][slug] || slug)
-        for (const entry of cv.value[slug]) { renderers[slug]?.(entry); y += 2 }
+    const builtinForPdf = freshBuiltin
+        .filter(s => sectiuniActive.value.includes(s.slug))
+        .map(s => ({ type: 'builtin', slug: s.slug, ordine: s.ordine }))
+    const customForPdf = freshCustom
+        .map(s => ({ type: 'custom', id: s.id, ordine: s.ordine, titlu: s.titlu, campuri: s.campuri }))
+    const allForPdf = [...builtinForPdf, ...customForPdf].sort((a, b) => a.ordine - b.ordine)
+
+    for (const section of allForPdf) {
+        if (section.type === 'builtin') {
+            if (!cv.value[section.slug]?.length) continue
+            sectionHeader(labels[language.value][section.slug] || section.slug)
+            for (const entry of cv.value[section.slug]) { renderers[section.slug]?.(entry); y += 2 }
+        } else {
+            const entries = customValues.value[section.id] || []
+            const hasData = entries.some(e => Object.values(e.valori).some(v => v && String(v).trim()))
+            if (!hasData) continue
+            sectionHeader(section.titlu)
+            for (const entry of entries) {
+                for (const camp of section.campuri) {
+                    const val = entry.valori[camp.id]
+                    if (val && String(val).trim()) {
+                        entryRow(camp.eticheta, '')
+                        txt(String(val), 9, false, GREY)
+                    }
+                }
+                y += 2
+            }
+        }
     }
 
     doc.save(`CV_${name}.pdf`)
 }
+
 async function importPublications() {
-    const res = await axios.get(`https://localhost:7234/api/Publicatii/import/${profesor.value.id}`)
+    const res = await axios.get(`${API}/api/Publicatii/import/${profesor.value.id}`)
     const fetched = res.data
     const existing = cv.value.publications || []
     const existingTitles = existing.map(p => (p.name || '').toLowerCase())
@@ -402,11 +475,14 @@ function logout() {
     profesor.value = null
     cv.value = emptyCV()
     profiles.value = { orcid: '', googleScholar: '', wos: '', researchgate: '' }
+    customValues.value = {}
     const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
     sectiuniActive.value = [...required]
     for (const slug of required) {
         cv.value[slug].push(emptyEntry(slug))
     }
+    customSectiuniActive.value = customSections.value.filter(sc => sc.esteObligatorie).map(sc => sc.id)
+    initCustomValues()
 }
 
 async function onLoggedIn(profesorData) {
@@ -416,32 +492,55 @@ async function onLoggedIn(profesorData) {
 }
 
 async function loadCV(id) {
-    const res = await axios.get(`https://localhost:7234/api/Profesori/${id}/cv`)
-    const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+    const [cvRes, customRes] = await Promise.all([
+        axios.get(`${API}/api/Profesori/${id}/cv`),
+        axios.get(`${API}/api/Profesori/${id}/sectiuniCustome`)
+    ])
+
+    const data = typeof cvRes.data === 'string' ? JSON.parse(cvRes.data) : cvRes.data
     cv.value = { ...emptyCV(), ...data }
 
-    // convert profiles array back to flat object
     for (const p of (data.basics?.profiles || [])) {
         const key = Object.keys(profiles.value).find(k => k.toLowerCase() === p.network?.toLowerCase())
         if (key) profiles.value[key] = p.url || ''
     }
 
-    // activate sections that have saved data
     const withData = sectiuniAdmin.value.map(s => s.slug).filter(slug => cv.value[slug]?.length > 0)
     const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
     sectiuniActive.value = [...new Set([...required, ...withData])]
 
-    // ensure required sections have at least one empty entry
     for (const slug of required) {
         if (!cv.value[slug].length) cv.value[slug].push(emptyEntry(slug))
     }
+
+    // Load custom values
+    const values = {}
+    for (const item of customRes.data) {
+        values[item.sectiuneId] = item.inregistrari.map(inr => ({
+            id: inr.id,
+            ordine: inr.ordine,
+            valori: Object.fromEntries(inr.valori.map(v => [v.campId, v.valoare]))
+        }))
+    }
+    customValues.value = values
+    const requiredCustom = customSections.value.filter(sc => sc.esteObligatorie).map(sc => sc.id)
+    const customWithData = Object.keys(values).map(Number).filter(id => values[id].length > 0)
+    customSectiuniActive.value = [...new Set([...requiredCustom, ...customWithData])]
+    initCustomValues()
 }
 
-function addSection(slug) {
-    if (!sectiuniActive.value.includes(slug)) {
-        sectiuniActive.value.push(slug)
-        if (!cv.value[slug].length) {
-            cv.value[slug].push(emptyEntry(slug))
+function addSection(item) {
+    if (item.type === 'builtin') {
+        if (!sectiuniActive.value.includes(item.key)) {
+            sectiuniActive.value.push(item.key)
+            if (!cv.value[item.key].length) cv.value[item.key].push(emptyEntry(item.key))
+        }
+    } else {
+        if (!customSectiuniActive.value.includes(item.key)) {
+            customSectiuniActive.value.push(item.key)
+            const sc = customSections.value.find(s => s.id === item.key)
+            if (sc && (!customValues.value[item.key] || !customValues.value[item.key].length))
+                customValues.value[item.key] = [emptyCustomEntry(sc.campuri)]
         }
     }
 }
@@ -457,35 +556,71 @@ function hideSection(slug) {
 function moveUp(idx) {
     if (idx === 0) return
     const arr = [...sectiuniActive.value]
-        ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+    ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
     sectiuniActive.value = arr
 }
 
 function moveDown(idx) {
     if (idx === sectiuniActive.value.length - 1) return
     const arr = [...sectiuniActive.value]
-        ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+    ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
     sectiuniActive.value = arr
 }
 
-const availableSections = computed(() =>
-    sectiuniAdmin.value.filter(s => !sectiuniActive.value.includes(s.slug))
-)
+const availableSections = computed(() => {
+    const inactiveBuiltin = sectiuniAdmin.value
+        .filter(s => !sectiuniActive.value.includes(s.slug))
+        .map(s => ({ type: 'builtin', key: s.slug, titlu: s.titlu }))
+    const inactiveCustom = customSections.value
+        .filter(sc => !customSectiuniActive.value.includes(sc.id))
+        .map(sc => ({ type: 'custom', key: sc.id, titlu: sc.titlu }))
+    return [...inactiveBuiltin, ...inactiveCustom]
+})
+
+const editorSections = computed(() => {
+    const sortedBuiltin = sectiuniActive.value
+        .map(slug => sectiuniAdmin.value.find(s => s.slug === slug))
+        .filter(Boolean)
+    const sortedCustom = [...customSections.value]
+        .filter(sc => customSectiuniActive.value.includes(sc.id))
+        .sort((a, b) => a.ordine - b.ordine)
+
+    const result = []
+    let ci = 0
+    for (const s of sortedBuiltin) {
+        while (ci < sortedCustom.length && sortedCustom[ci].ordine < s.ordine) {
+            result.push({ type: 'custom', sc: sortedCustom[ci] })
+            ci++
+        }
+        result.push({ type: 'builtin', slug: s.slug, ordine: s.ordine })
+    }
+    while (ci < sortedCustom.length) {
+        result.push({ type: 'custom', sc: sortedCustom[ci++] })
+    }
+    return result
+})
 
 onMounted(async () => {
     const stored = sessionStorage.getItem('profesor')
     if (stored) profesor.value = JSON.parse(stored)
     cv.value = emptyCV()
 
-    const res = await axios.get('https://localhost:7234/api/Sectiuni/active')
-    sectiuniAdmin.value = res.data
+    const [sectRes, customRes] = await Promise.all([
+        axios.get(`${API}/api/Sectiuni/active`),
+        axios.get(`${API}/api/SectiuniCustome/active`)
+    ])
+    sectiuniAdmin.value = sectRes.data
+    customSections.value = customRes.data
+
     const required = sectiuniAdmin.value.filter(s => s.esteObligatorie).map(s => s.slug)
     sectiuniActive.value = [...required]
     for (const slug of required) {
         cv.value[slug].push(emptyEntry(slug))
     }
+    customSectiuniActive.value = customSections.value.filter(sc => sc.esteObligatorie).map(sc => sc.id)
+
+    initCustomValues()
 
     if (profesor.value) await loadCV(profesor.value.id)
 })
-
 </script>

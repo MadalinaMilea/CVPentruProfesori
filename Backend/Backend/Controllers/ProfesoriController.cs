@@ -44,6 +44,17 @@ namespace Backend.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+            var inregistrariIds = _context.InregistrariCustome
+                .Where(i => i.ProfesorId == id)
+                .Select(i => i.Id)
+                .ToList();
+
+            _context.ValoriCampuri.RemoveRange(
+                _context.ValoriCampuri.Where(v => inregistrariIds.Contains(v.InregistrareCustomaId)));
+
+            _context.InregistrariCustome.RemoveRange(
+                _context.InregistrariCustome.Where(i => i.ProfesorId == id));
+
             var profesor = _context.Profesori.Find(id);
             _context.Profesori.Remove(profesor);
             _context.SaveChanges();
@@ -94,10 +105,73 @@ namespace Backend.Controllers
             _context.SaveChanges();
         }
 
-        [HttpGet("login")] 
+        [HttpGet("login")]
         public Profesor Login([FromQuery] string username)
         {
             return _context.Profesori.FirstOrDefault(p => (p.Prenume + " " + p.Nume) == username);
+        }
+
+        [HttpGet("{id}/sectiuniCustome")]
+        public List<ValoriSectiuneDto> GetCustomValues(int id)
+        {
+            var inregistrari = _context.InregistrariCustome
+                .Include(i => i.Valori)
+                .Where(i => i.ProfesorId == id)
+                .ToList();
+
+            return inregistrari
+                .GroupBy(i => i.SectiuneCustomaId)
+                .Select(g => new ValoriSectiuneDto
+                {
+                    SectiuneId = g.Key,
+                    Inregistrari = g.OrderBy(i => i.Ordine).Select(i => new InregistrareDto
+                    {
+                        Id = i.Id,
+                        Ordine = i.Ordine,
+                        Valori = i.Valori.Select(v => new ValoareCampDto
+                        {
+                            CampId = v.CampCustomId,
+                            Valoare = v.Valoare
+                        }).ToList()
+                    }).ToList()
+                })
+                .ToList();
+        }
+
+        [HttpPut("{id}/sectiuniCustome")]
+        public void SaveCustomValues(int id, List<ValoriSectiuneDto> dto)
+        {
+            var inregistrariIds = _context.InregistrariCustome
+                .Where(i => i.ProfesorId == id)
+                .Select(i => i.Id)
+                .ToList();
+
+            _context.ValoriCampuri.RemoveRange(
+                _context.ValoriCampuri.Where(v => inregistrariIds.Contains(v.InregistrareCustomaId)));
+
+            _context.InregistrariCustome.RemoveRange(
+                _context.InregistrariCustome.Where(i => i.ProfesorId == id));
+
+            foreach (var sectiune in dto ?? new List<ValoriSectiuneDto>())
+            {
+                foreach (var inregistrare in sectiune.Inregistrari ?? new List<InregistrareDto>())
+                {
+                    var inr = new InregistrareCustoma
+                    {
+                        SectiuneCustomaId = sectiune.SectiuneId,
+                        ProfesorId = id,
+                        Ordine = inregistrare.Ordine,
+                        Valori = (inregistrare.Valori ?? new List<ValoareCampDto>()).Select(v => new ValoareCamp
+                        {
+                            CampCustomId = v.CampId,
+                            Valoare = v.Valoare ?? ""
+                        }).ToList()
+                    };
+                    _context.InregistrariCustome.Add(inr);
+                }
+            }
+
+            _context.SaveChanges();
         }
     }
 }

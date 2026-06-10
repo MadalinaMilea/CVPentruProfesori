@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173").AllowAnyHeader().AllowAnyMethod();
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://localhost:5174", "https://localhost:5174").AllowAnyHeader().AllowAnyMethod();
     });
 });
 
@@ -29,6 +29,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE CampuriCustome ADD EsteFull BIT NOT NULL DEFAULT 0"); } catch { }
 
     if (!db.Sectiuni.Any())
     {

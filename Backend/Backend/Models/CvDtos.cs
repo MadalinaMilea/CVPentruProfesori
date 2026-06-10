@@ -118,4 +118,43 @@
         public string EndDate { get; set; }
         public string Summary { get; set; }
     }
+
+    public class SectiuneCustomaDto
+    {
+        public int Id { get; set; }
+        public string Titlu { get; set; }
+        public int Ordine { get; set; }
+        public bool EsteActiva { get; set; }
+        public bool EsteObligatorie { get; set; }
+        public bool EsteRepetabila { get; set; }
+        public List<CampCustomDto> Campuri { get; set; }
+    }
+
+    public class CampCustomDto
+    {
+        public int Id { get; set; }
+        public string Eticheta { get; set; }
+        public string Tip { get; set; }
+        public bool EsteFull { get; set; }
+        public int Ordine { get; set; }
+    }
+
+    public class ValoriSectiuneDto
+    {
+        public int SectiuneId { get; set; }
+        public List<InregistrareDto> Inregistrari { get; set; }
+    }
+
+    public class InregistrareDto
+    {
+        public int? Id { get; set; }
+        public int Ordine { get; set; }
+        public List<ValoareCampDto> Valori { get; set; }
+    }
+
+    public class ValoareCampDto
+    {
+        public int CampId { get; set; }
+        public string Valoare { get; set; }
+    }
 }
