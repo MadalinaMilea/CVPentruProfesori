@@ -444,13 +444,16 @@ async function exportPDF() {
             if (!hasData) continue
             sectionHeader(section.titlu)
             for (const entry of entries) {
-                for (const camp of section.campuri) {
-                    const val = entry.valori[camp.id]
-                    if (val && String(val).trim()) {
-                        entryRow(camp.eticheta, '')
-                        txt(String(val), 9, false, GREY)
-                    }
-                }
+                // Field values in field order, skipping empty ones. The first
+                // value is the entry title (bold); the rest are grey detail
+                // lines. Labels are not shown, so it reads like a real entry.
+                const vals = section.campuri
+                    .map(camp => entry.valori[camp.id])
+                    .filter(v => v && String(v).trim())
+                    .map(v => String(v).trim())
+                if (!vals.length) continue
+                entryRow(vals[0], '')
+                for (const v of vals.slice(1)) txt(v, 9, false, GREY)
                 y += 2
             }
         }
