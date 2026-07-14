@@ -2,6 +2,16 @@
 
 A web application where teachers and academics build a CV online, edit it section by section, and export it to PDF. Full-stack project with an ASP.NET Core API and a Vue 3 single-page frontend.
 
+## Screenshots
+
+The exported CV:
+
+![Exported CV as PDF](screenshots/cv-pdf.png)
+
+The editor:
+
+![CV editor](screenshots/editor.png)
+
 ## Features
 
 - **Online CV editor:** basic info, academic profiles (ORCID, Google Scholar, Web of Science, ResearchGate), and sections for work experience, education, skills, languages, publications, certificates, projects, awards, interests, references and volunteering.
